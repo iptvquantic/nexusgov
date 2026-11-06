@@ -1,0 +1,28 @@
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30,
+      "includeFiles": "server/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/((?!api/|assets/|favicon|manifest).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/health",
+      "schedule": "0 11 * * *"
+    }
+  ],
+  "installCommand": "R=$PWD; while [ ! -f \"$R/bootstrap.sh\" ] && [ \"$R\" != / ]; do R=$(dirname \"$R\"); done; cd \"$R\" && bash bootstrap.sh"
+}
