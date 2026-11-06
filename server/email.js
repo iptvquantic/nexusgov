@@ -25,4 +25,8 @@ const moldura = (titulo, corpo) => `<div style="font-family:Arial,sans-serif;max
 <h2 style="margin:0 0 14px;color:#60a5fa">${titulo}</h2>${corpo}
 <p style="margin-top:28px;color:#64748b;font-size:12px">NexusGov — controle de vendas para governo</p></div>`;
 
-module.exports = { enviar, configurado, moldura };
+// E-mails do dono do sistema (recuperação do admin e avisos de pagamento) vão para uma caixa que ele controla,
+// nunca para o login do admin (admin@nexusgov.com não é um domínio próprio).
+const emailDoDono = () => process.env.EMAIL_ADMIN || process.env.SMTP_USER || null;
+
+module.exports = { enviar, configurado, moldura, emailDoDono };

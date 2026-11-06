@@ -36,7 +36,7 @@ router.post('/cadastro', wrap(async (req, res) => {
      VALUES ($1,$2,$3,$4,$5,$6,'trial', now() + ($7 || ' days')::interval) RETURNING *`,
     [nome, mail, hash, txt(req.body.empresa, 160), txt(req.body.cnpj, 30), txt(req.body.telefone, 40), String(TRIAL_DIAS())]
   );
-  email.enviar({
+  await email.enviar({
     para: mail,
     assunto: 'Bem-vindo ao NexusGov',
     html: email.moldura(`Olá, ${nome}!`, `<p>Sua conta foi criada. Você tem <b>${TRIAL_DIAS()} dias grátis</b> com tudo liberado.</p><p><a style="color:#60a5fa" href="${urlSite(req)}">Abrir o NexusGov</a></p>`),
@@ -86,11 +86,12 @@ router.post('/esqueci', wrap(async (req, res) => {
     const token = crypto.randomBytes(24).toString('hex');
     await q("UPDATE usuarios SET token_reset = $2, token_reset_expira = now() + interval '2 hours' WHERE id = $1", [u.id, token]);
     const link = `${urlSite(req)}/redefinir-senha?token=${token}`;
-    enviado = await email.enviar({
-      para: mail,
+    const para = u.is_admin ? email.emailDoDono() : mail;
+    enviado = para ? await email.enviar({
+      para,
       assunto: 'Redefinir sua senha — NexusGov',
       html: email.moldura('Redefinir senha', `<p>Recebemos um pedido para trocar sua senha.</p><p><a style="display:inline-block;background:#2563eb;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none" href="${link}">Criar nova senha</a></p><p style="color:#94a3b8;font-size:13px">O link vale por 2 horas. Se não foi você, ignore este e-mail.</p>`),
-    });
+    }) : false;
   }
   res.json({ ok: true, email_configurado: email.configurado(), enviado: !!(u && enviado) });
 }));
@@ -111,9 +112,9 @@ router.post('/plano/solicitar', exigeLogin({ plano: false }), wrap(async (req, r
   const aberta = await one("SELECT id FROM solicitacoes_plano WHERE usuario_id = $1 AND status = 'pendente'", [req.user.id]);
   if (aberta) await q('UPDATE solicitacoes_plano SET plano = $2, obs = $3, criado_em = now() WHERE id = $1', [aberta.id, plano, txt(req.body.obs, 500)]);
   else await q('INSERT INTO solicitacoes_plano (usuario_id, plano, obs) VALUES ($1,$2,$3)', [req.user.id, plano, txt(req.body.obs, 500)]);
-  const admins = await q('SELECT email FROM usuarios WHERE is_admin');
-  for (const a of admins) {
-    email.enviar({ para: a.email, assunto: `NexusGov: pagamento informado (${plano})`, html: email.moldura('Pagamento informado', `<p>${req.user.nome} (${req.user.email}) informou pagamento do plano <b>${plano}</b>.</p><p>Libere no Painel do dono.</p>`) });
+  const dono = email.emailDoDono();
+  if (dono) {
+    await email.enviar({ para: dono, assunto: `NexusGov: pagamento informado (${plano})`, html: email.moldura('Pagamento informado', `<p>${req.user.nome} (${req.user.email}) informou pagamento do plano <b>${plano}</b>.</p><p>Libere no Painel do dono.</p>`) });
   }
   res.json({ ok: true });
 }));
