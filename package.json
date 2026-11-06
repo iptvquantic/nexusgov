@@ -1,0 +1,34 @@
+{
+  "name": "nexusgov",
+  "version": "3.0.0",
+  "private": true,
+  "description": "NexusGov - controle de vendas para governo",
+  "scripts": {
+    "dev": "vite",
+    "dev:api": "node server/local.js",
+    "build": "vite build",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": { "node": "22.x" },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "nodemailer": "^6.9.16",
+    "pdf-parse": "^1.1.1",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "lucide-react": "^0.468.0",
+    "postcss": "^8.4.49",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "recharts": "^2.15.0",
+    "tailwindcss": "^3.4.17",
+    "vite": "^5.4.11"
+  }
+}
